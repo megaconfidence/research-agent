@@ -140,9 +140,6 @@ dist
 
 # Cloudflare
 .wrangler
-.dev.vars
 
-
-.dev.vars*
-!.dev.vars.example
+# Tracked template for secrets — actual .env is gitignored above.
 !.env.example
