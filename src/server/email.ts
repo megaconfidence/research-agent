@@ -68,10 +68,54 @@ export function extractSender(
   );
 }
 
+/**
+ * Strip the quoted text mail clients prepend when a user replies in a
+ * thread. We keep only the recipient's *new* content — without this, every
+ * reply would feed the previous report back to the model as if it were the
+ * user's question.
+ *
+ * Recognises the common attribution patterns from Gmail / Apple Mail /
+ * Outlook in several languages, then falls back to dropping any leftover
+ * `>`-prefixed lines and trailing signature blocks.
+ */
+function stripQuotedReply(body: string): string {
+  // Match attribution lines that introduce a quoted block, then cut at
+  // the earliest one. Each pattern tolerates name/date variations.
+  const attributionPatterns = [
+    /^[ \t]*On\s.{1,300}\swrote:?\s*$/im, // Gmail / Apple Mail (en)
+    /^[ \t]*Am\s.{1,300}\sschrieb.*$/im, // Gmail (de)
+    /^[ \t]*Le\s.{1,300}\sa\s+écrit\s*:?\s*$/im, // Gmail (fr)
+    /^[ \t]*El\s.{1,300}\sescribió\s*:?\s*$/im, // Gmail (es)
+    /^[ \t]*Il\s.{1,300}\sha\s+scritto\s*:?\s*$/im, // Gmail (it)
+    /^[ \t]*Em\s.{1,300}\sescreveu\s*:?\s*$/im, // Gmail (pt)
+    /^-{2,}\s*Original\s+Message\s*-{2,}/im, // Outlook legacy
+    /^From:\s.{1,300}\nSent:/im, // Outlook modern header block
+    /^_{20,}\s*$/m // Outlook divider line
+  ];
+
+  let cutoff = body.length;
+  for (const pat of attributionPatterns) {
+    const m = body.match(pat);
+    if (m?.index !== undefined && m.index < cutoff) cutoff = m.index;
+  }
+
+  let text = body
+    .slice(0, cutoff)
+    // Drop any leftover quoted lines (clients without a recognised
+    // attribution still mark quoted text with a leading ">").
+    .split("\n")
+    .filter((line) => !/^[ \t]*>+/.test(line))
+    .join("\n")
+    // Drop a trailing signature block ("-- " on a line by itself).
+    .replace(/\n--\s*\n[\s\S]*$/, "");
+
+  return text.trim();
+}
+
 /** Combine the subject and plain-text body into the question to research. */
 export function extractQuestion(parsed: ParsedEmail): string {
   const subject = (parsed.subject ?? "").trim();
-  const body = (parsed.text ?? "").trim();
+  const body = stripQuotedReply((parsed.text ?? "").trim());
   return [subject, body].filter(Boolean).join("\n\n").trim();
 }
 
