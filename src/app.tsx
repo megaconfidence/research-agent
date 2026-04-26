@@ -10,7 +10,7 @@ import { useAgent } from "agents/react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import type { MCPServersState } from "agents";
-import type { ResearchAgent } from "./server";
+import type { ResearchAgent } from "./server/index";
 import {
   Badge,
   Button,

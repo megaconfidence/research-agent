@@ -207,7 +207,7 @@ Date: Mon, 01 Jan 2026 12:00:00 +0000
 What are the tradeoffs?"
 ```
 
-Watch the Vite terminal log for `[ResearchAgent] inbound: envelope=… from=… replyTo=… → reply to <addr>` to confirm the sender was picked up correctly, then `Email handler replied to sender` (ack) and `[ResearchAgent] sendEmail ok messageId=…` (final report). The `.eml` files Miniflare wrote contain the messages. Open the chat UI at `http://localhost:5173` and you'll see the email-driven turn appear with a 📧 badge showing the actual sender's address.
+Watch the Vite terminal log for `[ResearchAgent] inbound from <addr>: "<subject>"` to confirm the sender was picked up correctly, then `Email handler replied to sender` (ack) and `[ResearchAgent] sent report to <addr> messageId=…` (final report). The `.eml` files Miniflare wrote contain the messages. Open the chat UI at `http://localhost:5173` and you'll see the email-driven turn appear with a 📧 badge showing the actual sender's address.
 
 **Notes / known limits:**
 
